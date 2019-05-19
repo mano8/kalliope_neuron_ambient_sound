@@ -15,15 +15,8 @@ kalliope install --git-url https://github.com/kalliope-project/kalliope_neuron_a
 
 | parameter         | required | type   | default          | choices             | comment                                                                     |
 |-------------------|----------|--------|------------------|---------------------|-----------------------------------------------------------------------------|
-| state             | YES      | string |                  | "on", "off",        | Target state of the ambient sound.  
-|                   |          |        |                  | "play-pause",       |
-|                   |          |        |                  | "restart-song",     |
-|                   |          |        |                  | "next-song",        |
-|                   |          |        |                  | "back-song"         | 
-|
-| type              | NO       | string | ambient          | "ambient", "music"  | If not set, ambient directory selected 
-|                   |          |        |                  | "sound    "         | 
-|
+| state             | YES      | string |                  | "on", "off", "play-pause", "restart-song", "next-song", "back-song"         | Target state of the ambient sound. |
+| type              | NO       | string | ambient          | "ambient", "music", "sound"   | If not set, ambient directory selected 
 | sound_name        | NO       | string |                  | See the list bellow | If not set, a sound will be selectedrandomly                                |
 | mplayer_path      | NO       | string | /usr/bin/mplayer |                     | Path to mplayer binary. By default /usr/bin/mplayer on Debian family system |
 | auto_stop_minutes | NO       | int    |                  | Integer > 1         | Number of minutes before Kalliope stop automatically the background sound   |
