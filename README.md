@@ -16,7 +16,7 @@ kalliope install --git-url https://github.com/kalliope-project/kalliope_neuron_a
 | parameter         | required | type   | default          | choices             | comment                                                                     |
 |-------------------|----------|--------|------------------|---------------------|-----------------------------------------------------------------------------|
 | state             | YES      | string |                  | "on", "off", "play-pause", "restart-song", "next-song", "back-song"         | Target state of the ambient sound. |
-| type              | NO       | string | ambient          | "ambient", "music", "sound"   | If not set, ambient directory selected 
+| type              | NO       | string | ambient          | "ambient", "music", "sounds"   | If not set, ambient directory selected 
 | sound_name        | NO       | string |                  | See the list bellow | If not set, a sound will be selectedrandomly                                |
 | mplayer_path      | NO       | string | /usr/bin/mplayer |                     | Path to mplayer binary. By default /usr/bin/mplayer on Debian family system |
 | auto_stop_minutes | NO       | int    |                  | Integer > 1         | Number of minutes before Kalliope stop automatically the background sound   |
@@ -61,24 +61,109 @@ Start an ambient sound randomly
         state: "on"
 ```
 
+Start a song on music directory randomly
+```yml
+- name: "music-random"
+  signals:
+    - order: "play a song"
+  neurons:
+    - ambient_sound:
+        state: "on"
+        type: "music"
+```
+
+
+Start a sound on sounds directory randomly
+```yml
+- name: "sound-random"
+  signals:
+    - order: "play a song"
+  neurons:
+    - ambient_sound:
+        state: "on"
+        type: "sounds"
+```
+
+Stop played song, music or sound
 ```yml
 - name: "ambient-stop"
   signals:
     - order: "stop ambient sound"
+    - order: "stop music"
   neurons:
     - ambient_sound:
         state: "off"
 ```
 
+Pause played song, music or sound
+```yml
+- name: "ambient-pause"
+  signals:
+    - order: "pause ambient sound"
+    - order: "pause music"
+    - order: "pause sound"
+  neurons:
+    - ambient_sound:
+        state: "play-pause"
+```
+
+Play played song, music or sound
+```yml
+- name: "ambient-play"
+  signals:
+    - order: "play ambient sound"
+    - order: "play music"
+    - order: "play sound"
+  neurons:
+    - ambient_sound:
+        state: "play-pause"
+```
+
+Restart played song, music or sound
+```yml
+- name: "ambient-restart"
+  signals:
+    - order: "restart ambient sound"
+    - order: "restart song"
+    - order: "restart sound"
+  neurons:
+    - ambient_sound:
+        state: "restart-song"
+```
+
 Play selected ambient sound
 ```yml
-- name: "ambient-random"
+- name: "ambient-selected"
   signals:
     - order: "ambient sound"
   neurons:
     - ambient_sound:
         state: "on"
         sound_name: "forest-rain"
+```
+
+Play selected song on music folder
+```yml
+- name: "ambient-selected"
+  signals:
+    - order: "ambient sound"
+  neurons:
+    - ambient_sound:
+        state: "on"
+        type: "music"
+        sound_name: "name-of-your-song"
+```
+
+Play selected sound on sounds folder
+```yml
+- name: "ambient-selected"
+  signals:
+    - order: "ambient sound"
+  neurons:
+    - ambient_sound:
+        state: "on"
+        type: "sounds"
+        sound_name: "name-of-your-sound"
 ```
 
 Auto stop after 20 minutes
