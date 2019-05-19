@@ -15,7 +15,15 @@ kalliope install --git-url https://github.com/kalliope-project/kalliope_neuron_a
 
 | parameter         | required | type   | default          | choices             | comment                                                                     |
 |-------------------|----------|--------|------------------|---------------------|-----------------------------------------------------------------------------|
-| state             | YES      | string |                  | "on", "off"         | Target state of the ambient sound.                                          |
+| state             | YES      | string |                  | "on", "off",        | Target state of the ambient sound.  
+|                   |          |        |                  | "play-pause",       |
+|                   |          |        |                  | "restart-song",     |
+|                   |          |        |                  | "next-song",        |
+|                   |          |        |                  | "back-song"         | 
+|
+| type              | NO       | string | ambient          | "ambient", "music"  | If not set, ambient directory selected 
+|                   |          |        |                  | "sound    "         | 
+|
 | sound_name        | NO       | string |                  | See the list bellow | If not set, a sound will be selectedrandomly                                |
 | mplayer_path      | NO       | string | /usr/bin/mplayer |                     | Path to mplayer binary. By default /usr/bin/mplayer on Debian family system |
 | auto_stop_minutes | NO       | int    |                  | Integer > 1         | Number of minutes before Kalliope stop automatically the background sound   |
@@ -45,6 +53,7 @@ List of available sound:
 | Name             | Description                             | Type   | sample                                                   |
 |------------------|-----------------------------------------|--------|----------------------------------------------------------|
 | playing_sound    | The current sound played                | string | fireplace                                                |
+| is_playlist      | if current sound played is playlist     | bool   | False                                                
 | available_sounds | List of available sound in the database | list   | ['fireplace', 'heavy-rain', 'tropical-beach', 'seaside'] |
 
 ## Synapses example
