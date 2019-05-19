@@ -8,7 +8,7 @@ Background sounds for focusing or create a relaxing ambiance.
 
 Install the neuron into your resource directory
 ```bash
-kalliope install --git-url https://github.com/kalliope-project/kalliope_neuron_ambient_sound.git
+kalliope install --git-url https://github.com/mano8/kalliope_neuron_ambient_sound.git
 ```
 
 ## Options
