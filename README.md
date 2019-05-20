@@ -180,7 +180,8 @@ Auto stop after 20 minutes
 ```
 ## Extra
 You can pause music when you need to call kalliope, 
-adding play-pause state to your on-triggered-synapse.
+adding pause state to your on-triggered-synapse.
+
 And then play, when you finish calling your ambient-play synapse.
 ```yml
 - name: "on-triggered-synapse"
@@ -213,7 +214,7 @@ In case of playlist, no control for extension is executed.
 
 ## Fifo
 Fifo file is used here, to control mplayer. If you added your own to mplayer conf you can use your own.
-By default it is created in this neuron path depending where you install this neuron. -> 'fifo_file_path'
+By default it is created in this neuron path depending where you have installed. -> fifo_file_path = "music-control"
 
 By changing fifo_file_path variable with your absolute path.
 
