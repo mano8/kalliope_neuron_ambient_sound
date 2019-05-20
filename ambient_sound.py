@@ -118,7 +118,7 @@ class Ambient_sound(NeuronModule):
         self.auto_stop_minutes = kwargs.get('auto_stop_minutes', None)
         
         self.is_playlist = False
-        self.extra_cmd = ["play-pause", "restart-song", "next-song", "back-song"]
+        self.extra_cmd = ["play","pause", "restart-song", "next-song", "back-song"]
         # this is the target AmbientSound object if the user gave a sound_name to play.
         # this object will be loaded by the _is_parameters_ok function durring the check if the sound exist
         self.target_ambient_sound = None
@@ -185,7 +185,7 @@ class Ambient_sound(NeuronModule):
         """
 
         if self.state not in ["on", "off"] and self.state not in self.extra_cmd: 
-            raise InvalidParameterException("[Ambient_sounds] State must be 'on', 'off', 'play-pause', 'restart-song', 'next-song', 'back-song'")
+            raise InvalidParameterException("[Ambient_sounds] State must be 'on', 'off', 'play', 'pause', 'restart-song', 'next-song', 'back-song'")
 
         # check that the given sound name exist
         if self.sound_name is not None:
@@ -209,11 +209,17 @@ class Ambient_sound(NeuronModule):
     @staticmethod
     def get_fifo_file_path():
         """
-        Store FIFO into a file
-        :param pid: pid number to save
+        Get FIFO file to control mplayer process.
+        If fifo file don't exist we create it.
+        If fifo_file_path is absolute we use this path. Else it's stored in this neuron directory.
+        
         :return: Music control fifo path or None
         """
-        absolute_fifo_file_path = SoundDatabase.get_neuron_path() + os.sep + fifo_file_path
+        if not os.path.isabs(fifo_file_path):
+            absolute_fifo_file_path = SoundDatabase.get_neuron_path() + os.sep + fifo_file_path
+        else:
+            absolute_fifo_file_path = fifo_file_path
+
         try:
             if not os.path.exists(absolute_fifo_file_path):
                 os.mkfifo(absolute_fifo_file_path)
@@ -233,14 +239,18 @@ class Ambient_sound(NeuronModule):
         """
         absolute_fifo_file_path = cls.get_fifo_file_path()
         try:
-            if cmd == "play-pause":
-                os.system("echo pause > %s"%absolute_fifo_file_path) 
+            if cmd == "pause":
+                os.system("echo pausing_keep_force pause 1 > %s"%absolute_fifo_file_path)
+            elif cmd == "play":
+                os.system("echo pause > %s"%absolute_fifo_file_path)  
             elif cmd == "next-song":
                 os.system("echo pt_step 1 > %s"%absolute_fifo_file_path) 
             elif cmd == "back-song":
                 os.system("echo pt_step -1 > %s"%absolute_fifo_file_path) 
             elif cmd == "restart-song":
-                os.system("echo set_property percent_pos 0 > %s"%absolute_fifo_file_path) 
+                os.system("echo set_property percent_pos 0 > %s"%absolute_fifo_file_path)
+            elif cmd == "quit":
+                os.system("echo quit > %s"%absolute_fifo_file_path)  
         except Exception as e:
             logger.error("[Ambient_sounds] Unable to send command to mplayer. Exception error(%s): %s", e.errno, e.strerror)
         
@@ -320,6 +330,7 @@ class Ambient_sound(NeuronModule):
             logger.debug("[Ambient_sounds] loaded pid: %s" % pid)
             try:
                 p = psutil.Process(pid)
+                self.cmd_to_last_process("quit")
                 p.kill()
                 logger.debug("[Ambient_sounds] mplayer process with pid %s killed" % pid)
             except psutil.NoSuchProcess:

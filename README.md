@@ -15,13 +15,13 @@ kalliope install --git-url https://github.com/mano8/kalliope_neuron_ambient_soun
 
 | parameter         | required | type   | default          | choices             | comment                                                                     |
 |-------------------|----------|--------|------------------|---------------------|-----------------------------------------------------------------------------|
-| state             | YES      | string |                  | "on", "off", "play-pause", "restart-song", "next-song", "back-song"         | Target state of the ambient sound. |
+| state             | YES      | string |                  | "on", "off", "play", "pause", "restart-song", "next-song", "back-song"         | Target state of the ambient sound. |
 | type              | NO       | string | ambient          | "ambient", "music", "sounds"   | If not set, ambient directory selected 
 | sound_name        | NO       | string |                  | See the list bellow | If not set, a sound will be selectedrandomly                                |
 | mplayer_path      | NO       | string | /usr/bin/mplayer |                     | Path to mplayer binary. By default /usr/bin/mplayer on Debian family system |
 | auto_stop_minutes | NO       | int    |                  | Integer > 1         | Number of minutes before Kalliope stop automatically the background sound   |
 
-List of available sound:
+List of available ambient sound: (player_content/ambient/)
 - birds
 - fireplace
 - forest
@@ -104,7 +104,7 @@ Pause played song, music or sound
     - order: "pause sound"
   neurons:
     - ambient_sound:
-        state: "play-pause"
+        state: "pause"
 ```
 
 Play played song, music or sound
@@ -116,7 +116,7 @@ Play played song, music or sound
     - order: "play sound"
   neurons:
     - ambient_sound:
-        state: "play-pause"
+        state: "play"
 ```
 
 Restart played song, music or sound
@@ -187,7 +187,7 @@ And then play, when you finish calling your ambient-play synapse.
     signals: []
     neurons:
       - ambient_sound:
-          state: "play-pause"
+          state: "pause"
       - say:
           message:
             - "yes?"
@@ -206,10 +206,22 @@ These folders can only contains music files, no folders.
 You can add winamp playlists to any folder, and play them.
 
 For now only '.mp3', '.ogg', '.wav', '.wma', '.amr', '.m3u' extensions can be played and can be stored on SoundDatabase.
+
 You can add your owns moddifing 'valid_ext' list on ambiant_sound.py
+
 In case of playlist, no control for extension is executed.
 
+## Fifo
+Fifo file is used here, to control mplayer. If you added your own to mplayer conf you can use your own.
+By default it is created in this neuron path depending where you install this neuron. -> 'fifo_file_path'
 
+By changing fifo_file_path variable with your absolute path.
+
+Or use the FIFO file created, in your mplayer conf file:
+```bash
+https://www.linuxquestions.org/questions/linux-software-2/pause-mplayer-in-background-from-command-line-897703/
+```
+And then, control mplayer process from command line. 
 ## Licence
 
 MIT
