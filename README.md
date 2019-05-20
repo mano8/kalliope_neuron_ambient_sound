@@ -178,10 +178,37 @@ Auto stop after 20 minutes
         say_template:
             - "I've selected {{ playing_sound }}"
 ```
-
+## Extra
+You can pause music when you need to call kalliope, 
+adding play-pause state to your on-triggered-synapse.
+And then play, when you finish calling your ambient-play synapse.
+```yml
+- name: "on-triggered-synapse"
+    signals: []
+    neurons:
+      - ambient_sound:
+          state: "play-pause"
+      - say:
+          message:
+            - "yes?"
+```            
 ## Notes
+The folder 'player_content/' contains 3 folders:
+  - ambient/ : contain all ambients sounds
+  - music/   : you can add here all your music
+  - sound/   : you can add here all your sounds
 
-You add your own sound file inside the "sound" folder.
+You can create a link to your home directory to add music more easly.
+But don't erase or rename this folders.
+
+These folders can only contains music files, no folders.
+
+You can add winamp playlists to any folder, and play them.
+
+For now only '.mp3', '.ogg', '.wav', '.wma', '.amr', '.m3u' extensions can be played and can be stored on SoundDatabase.
+You can add your owns moddifing 'valid_ext' list on ambiant_sound.py
+In case of playlist, no control for extension is executed.
+
 
 ## Licence
 

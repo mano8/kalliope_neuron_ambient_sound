@@ -16,7 +16,7 @@ logger = logging.getLogger("kalliope")
 
 pid_file_path = "pid.txt"
 fifo_file_path = "music-control"
-sound_path = "sounds/"
+sound_path = "player_content/"
 valid_ext = ['.mp3', '.ogg', '.wav', '.wma', '.amr', '.m3u']
 
 class AmbientSound:
