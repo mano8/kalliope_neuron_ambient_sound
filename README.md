@@ -210,19 +210,18 @@ For now only '.mp3', '.ogg', '.wav', '.wma', '.amr', '.m3u' extensions can be pl
 
 You can add your owns moddifing 'valid_ext' list on ambiant_sound.py
 
-In case of playlist, no control for extension is executed.
+In case of playlist, no control for extension, is executed.
 
 ## Fifo
-Fifo file is used here, to control mplayer. If you added your own to mplayer conf you can use your own.
-By default it is created in this neuron path depending where you have installed. -> fifo_file_path = "music-control"
+Fifo file is used here, to control mplayer.
+By default it created in this neuron path depending where you have installed. -> neuron_path/fifo_file_path
+If you have anothers fifo files, to control mplayer, you can change default directory, 
+by changing, fifo_file_path variable with your absolute path.
+Only if you want, all fifo's on same directory.
 
-By changing fifo_file_path variable with your absolute path.
+This Fifo's don't be used by another mplayer process.
 
-Or use the FIFO file created, in your mplayer conf file:
-```bash
-https://www.linuxquestions.org/questions/linux-software-2/pause-mplayer-in-background-from-command-line-897703/
-```
-And then, control mplayer process from command line. 
+
 ## Licence
 
 MIT

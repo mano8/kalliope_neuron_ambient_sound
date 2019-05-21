@@ -143,7 +143,7 @@ class Ambient_sound(NeuronModule):
                 #   - block next_song, back_song if no playlist or if no random
                 #     or if simple song select other creating other process
                 #   - add auto stop in paused mode for close unused process if user only pause and never stop
-                self.cmd_to_last_process(self.state)
+                self._send_to_fifo_mplayer(self.state)
             else:
                 # we stop the last process if exist
                 self.stop_last_process()
@@ -207,13 +207,15 @@ class Ambient_sound(NeuronModule):
         return True
 
     @staticmethod
-    def get_fifo_file_path():
+    def _get_fifo_file_path():
         """
         Get FIFO file to control mplayer process.
         If fifo file don't exist we create it.
         If fifo_file_path is absolute we use this path. Else it's stored in this neuron directory.
         
-        :return: Music control fifo path or None
+        But it's have to be used exclusively with this neuron for no interferance.
+
+        :return: absolute_fifo_file_path path or None
         """
         if not os.path.isabs(fifo_file_path):
             absolute_fifo_file_path = SoundDatabase.get_neuron_path() + os.sep + fifo_file_path
@@ -231,30 +233,49 @@ class Ambient_sound(NeuronModule):
         return None
 
     @classmethod
-    def send_to_fifo_music_control(cls, cmd):
+    def _send_to_fifo_mplayer(cls, cmd):
         """
-        Send a command to mplayer fifo
-        :param pid: pid number to save
-        :return: Music control fifo path or None
+        Send a command to mplayer using fifo file
+
+        :param cmd: command key to translate and send to mplayer
+        :return: True or False depending if command sended to mplayer fifo
         """
-        absolute_fifo_file_path = cls.get_fifo_file_path()
-        try:
+        # get pid and absolute path
+        pid = cls.load_pid()
+        absolute_fifo_file_path = cls._get_fifo_file_path()
+        # if pid and valid fifo file
+        if pid is not None and os.path.exists(absolute_fifo_file_path):
+            # convert stae command to mplayer property
+            cmd_run = None
             if cmd == "pause":
-                os.system("echo pausing_keep_force pause 1 > %s"%absolute_fifo_file_path)
+                cmd_run = "pausing_keep_force pause 1\n"
             elif cmd == "play":
-                os.system("echo pause > %s"%absolute_fifo_file_path)  
+                cmd_run = "pause\n"
             elif cmd == "next-song":
-                os.system("echo pt_step 1 > %s"%absolute_fifo_file_path) 
+                cmd_run = "pt_step 1\n"
             elif cmd == "back-song":
-                os.system("echo pt_step -1 > %s"%absolute_fifo_file_path) 
+                cmd_run = "pt_step -1\n"
             elif cmd == "restart-song":
-                os.system("echo set_property percent_pos 0 > %s"%absolute_fifo_file_path)
-            elif cmd == "quit":
-                os.system("echo quit > %s"%absolute_fifo_file_path)  
-        except Exception as e:
-            logger.error("[Ambient_sounds] Unable to send command to mplayer. Exception error(%s): %s", e.errno, e.strerror)
+                cmd_run = "set_property percent_pos 0\n"
+            elif cmd == "mute":
+                cmd_run = "set_property volume 0\n"
+            elif cmd == "unmute":
+                cmd_run = "set_property volume 95\n"
+            try:
+                # if command defined and process pid exist
+                if cmd_run is not None and psutil.pid_exists(pid):
+                    # command to fifo file
+                    with open(absolute_fifo_file_path, "w") as file_open:
+                        file_open.write(cmd_run)
+                        file_open.close()
+                    return True                   
+            except IOError as e:
+                logger.error("[Ambient_sounds] I/O error on fifo file %s : %s", str(absolute_fifo_file_path),str(e))
+                return False      
+            except Exception as e:
+                logger.error("[Ambient_sounds] Unable to send command to mplayer. Exception error: %s", str(e))
         
-        return None
+        return False
 
     @staticmethod
     def store_pid(pid):
@@ -298,27 +319,6 @@ class Ambient_sound(NeuronModule):
                 return False
         return False
 
-    def cmd_to_last_process(self, cmd):
-        """
-        send cmd to the last mplayer process launched by this neuron
-        :return:
-        """
-        pid = self.load_pid()
-
-        if pid is not None:
-            logger.debug("[Ambient_sounds] loaded pid: %s" % pid)
-            try:
-                p = psutil.Process(pid)
-                self.send_to_fifo_music_control(cmd)
-                logger.debug("[Ambient_sounds] cmd %s send to mplayer process with pid %s" % (cmd, pid))
-            except psutil.NoSuchProcess:
-                logger.debug("[Ambient_sounds] the process PID %s does not exist" % pid)
-            except Exception as e:
-                logger.debug("[Ambient_sounds] p type : %s" % str(type(p)))
-                logger.error("[Ambient_sounds] Unable to send mplayer cmd. Exception : %s", str(e))
-        else:
-            logger.debug("[Ambient_sounds] pid is null. Process already stopped")
-
     def stop_last_process(self):
         """
         stop the last mplayer process launched by this neuron
@@ -330,9 +330,13 @@ class Ambient_sound(NeuronModule):
             logger.debug("[Ambient_sounds] loaded pid: %s" % pid)
             try:
                 p = psutil.Process(pid)
-                self.cmd_to_last_process("quit")
-                p.kill()
-                logger.debug("[Ambient_sounds] mplayer process with pid %s killed" % pid)
+                p.terminate()
+                p.wait(timeout=2)
+                
+                if psutil.pid_exists(pid):
+                    logger.error("[Ambient_sounds] %s process with pid %s can't be killed.", p.name(), pid)
+                else:
+                    logger.debug("[Ambient_sounds] mplayer process with pid %s killed" % pid)
             except psutil.NoSuchProcess:
                 logger.debug("[Ambient_sounds] the process PID %s does not exist" % pid)
         else:
@@ -345,7 +349,7 @@ class Ambient_sound(NeuronModule):
         :type target_ambient_sound: AmbientSound
         :return:
         """
-        absolute_fifo_file_path = self.get_fifo_file_path()
+        absolute_fifo_file_path = self._get_fifo_file_path()
         if target_ambient_sound.file_extension in valid_ext:
             mplayer_exec_path = [self.mplayer_path]
             mplayer_options = ['-slave', '-quiet', '-loop', '0']
