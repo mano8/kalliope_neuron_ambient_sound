@@ -131,6 +131,10 @@ class Ambient_sound(NeuronModule):
         # this object will be loaded by the _is_parameters_ok function durring the check if the sound exist
         self.target_ambient_sound = None
 
+        # if state is 'on' and no type defined set default to 'ambient'
+        if self.type is None and self.state =="on":
+            self.type = "ambient"
+
         # sound database
         self.sdb = SoundDatabase(self.type)
 
@@ -194,6 +198,14 @@ class Ambient_sound(NeuronModule):
 
         if not self._is_normal_state(self.state) and not self._is_extra_state(self.state): 
             raise InvalidParameterException("[Ambient_sounds] State must be 'on', 'off', 'play', 'pause', 'restart-song', 'next-song', 'back-song'")
+
+        # raise error if bad type and state on
+        if not SoundDatabase._is_valid_folder_type(self.type) and self.state == "on":
+            raise InvalidParameterException("[Ambient_sounds] Sound Type %s, must be 'ambient', 'music' or 'sound'"% str(self.type))
+        # elif bad type and state not on set it to None
+        elif not SoundDatabase._is_valid_folder_type(self.type) and self.state != "on":
+            self.type = None
+
 
         # check that the given sound name exist
         if self.sound_name is not None:
