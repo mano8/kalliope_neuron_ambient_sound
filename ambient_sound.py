@@ -74,6 +74,31 @@ class SoundDatabase:
         """
         return random.choice(self.available_sounds)
 
+    def get_next_back_sound(self, sound_name_played, choice='next_song'):
+        """
+        Get the next or the back AmbientSound object in list_ambient_sounds of the sound database
+        :param sound_name_played: name of the sound actualy played
+        :param choice: choice next or back
+        :return: AmbientSound object
+        """
+        nb_sounds = len(self.available_sounds)
+        
+        for i in range(nb_sounds):
+            if self.available_sounds[i].name == sound_name_played:
+                logger.debug("[Ambient_sounds] sound name %s identified by %s in list items with %s items" % (sound_name_played, i, nb_sounds))
+                if choice == 'next' and i < nb_sounds-1:
+                    return self.available_sounds[i+1]
+                elif choice == 'next' and i > 0 and i == nb_sounds-1:
+                    return self.available_sounds[0]
+                elif choice == 'back' and i > 0:
+                    return self.available_sounds[i-1]
+                elif choice == 'back' and i == 0:
+                    return self.available_sounds[nb_sounds-1]
+                else:
+                    return self.available_sounds[i]
+        
+        return None
+
     @staticmethod
     def _is_valid_folder_type(state):
         return (state in ["ambient", "music", "sound"])
@@ -134,6 +159,10 @@ class Ambient_sound(NeuronModule):
         # if state is 'on' and no type defined set default to 'ambient'
         if self.type is None and self.state =="on":
             self.type = "ambient"
+        
+        # if state is 'on' and no type defined set default to 'ambient'
+        if self.sound_name is '':
+            self.sound_name = None
 
         # sound database
         self.sdb = SoundDatabase(self.type)
@@ -150,11 +179,31 @@ class Ambient_sound(NeuronModule):
             if self.state == "off":
                 self.stop_last_process()
                 self.clean_pid_file()
+            elif self.target_ambient_sound is not None and self.state in ['next', 'back']:
+                new_sound = self.sdb.get_next_back_sound(self.target_ambient_sound.name, self.state)
+                logger.error("[Ambient_sounds] Extra state %s, executed on sound list. New sound played : %s" % (self.state, new_sound))
+                if new_sound is not None:
+                    self.target_ambient_sound = new_sound
+                    # we stop the last process if exist
+                    self.stop_last_process()
+
+                    self.start_new_process(self.target_ambient_sound)
+
+                # give the current file name played to the neuron template
+                self.message["playing_sound"] = self.target_ambient_sound.name
+                self.message["playing_type"] = self.type
+                self.message["is_playlist"] = self.is_playlist
+
             elif self._is_extra_state(self.state):
                 # To Do : 
-                #   - block next_song, back_song if no playlist or if no random
-                #     or if simple song select other creating other process
-                #   - add auto stop in paused mode for close unused process if user only pause and never stop
+                #   - add auto stop in paused mode for close unused process 
+                #     if user only pause and never stop. but must be canceled on play state
+                if self.target_ambient_sound is not None:
+                    self.message["playing_sound"] = self.target_ambient_sound.name
+                    self.message["playing_type"] = self.type
+                    self.message["is_playlist"] = self.is_playlist
+                # Add next and back state, if the user give a sound name and played sound not a playlist
+                logger.debug("[Ambient_sounds] Extra state %s, executed on: %s" % (self.state, self.target_ambient_sound))
                 self._send_to_fifo_mplayer(self.state)
             else:
                 # we stop the last process if exist
@@ -172,6 +221,7 @@ class Ambient_sound(NeuronModule):
 
                     # give the current file name played to the neuron template
                     self.message["playing_sound"] = self.target_ambient_sound.name
+                    self.message["playing_type"] = self.type
                     self.message["is_playlist"] = self.is_playlist
                     # run auto stop thread
                     if self.auto_stop_minutes:
@@ -197,7 +247,7 @@ class Ambient_sound(NeuronModule):
         """
 
         if not self._is_normal_state(self.state) and not self._is_extra_state(self.state): 
-            raise InvalidParameterException("[Ambient_sounds] State must be 'on', 'off', 'play', 'pause', 'restart-song', 'next-song', 'back-song'")
+            raise InvalidParameterException('[Ambient_sounds] State %s, must be "play","pause", "restart-song", "next", "back", "next-on-playlist", "back-on-playlist"'% (self.state))
 
         # raise error if bad type and state on
         if not SoundDatabase._is_valid_folder_type(self.type) and self.state == "on":
@@ -211,7 +261,7 @@ class Ambient_sound(NeuronModule):
         if self.sound_name is not None:
             self.target_ambient_sound = self.sdb.get_sound_by_name(self.sound_name)
             if self.target_ambient_sound is None:
-                raise InvalidParameterException("[Ambient_sounds] Sound name %s does not exist" % self.sound_name)
+                raise InvalidParameterException("[Ambient_sounds] Sound name '%s' does not exist" % self.sound_name)
 
         
         # if wait auto_stop_minutes is set, mut be an integer or string convertible to integer
@@ -235,7 +285,7 @@ class Ambient_sound(NeuronModule):
     
     def _is_extra_state(state):
         """ Test if state is an extra state (pause, play,...) """
-        return (state in ["mute","unmute", "play","pause", "restart-song", "next-song", "back-song"])
+        return (state in ["play","pause", "restart-song", "next", "back", "next-on-playlist", "back-on-playlist"])
 
     @staticmethod
     def _get_fifo_file_path():
@@ -282,9 +332,9 @@ class Ambient_sound(NeuronModule):
                 cmd_run = "pausing_keep_force pause 1\n"
             elif cmd == "play":
                 cmd_run = "pausing_toggle pause\n"
-            elif cmd == "next-song":
+            elif cmd == "next-on-playlist":
                 cmd_run = "pt_step 1\n"
-            elif cmd == "back-song":
+            elif cmd == "back-on-playlist":
                 cmd_run = "pt_step -1\n"
             elif cmd == "restart-song":
                 cmd_run = "set_property percent_pos 0\n"
