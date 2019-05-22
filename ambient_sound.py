@@ -278,7 +278,7 @@ class Ambient_sound(NeuronModule):
         if not SoundDatabase._is_valid_folder_type(soundtype):
             soundtype = None
 
-        sound = Cortex.get_from_key("kalliope_ambient_sound_sound")
+        sound = Cortex.get_from_key("kalliope_ambient_sound_name")
         if soundtype is None:
             sound = None
 
@@ -315,13 +315,13 @@ class Ambient_sound(NeuronModule):
                 }
             Cortex.save("kalliope_ambient_sound_state", self.state)
             Cortex.save("kalliope_ambient_sound_type", self.type)
-            Cortex.save("kalliope_ambient_sound_sound", sound)
+            Cortex.save("kalliope_ambient_sound_name", sound)
         elif self.state == "off":
             self._last_data = {"state": self.state, "type": None, "sound": None}
 
             Cortex.save("kalliope_ambient_sound_state", self.state)
             Cortex.save("kalliope_ambient_sound_type", None)
-            Cortex.save("kalliope_ambient_sound_sound", None)
+            Cortex.save("kalliope_ambient_sound_name", None)
     
     @staticmethod
     def _is_normal_state(state):
