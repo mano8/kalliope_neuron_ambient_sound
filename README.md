@@ -16,7 +16,7 @@ kalliope install --git-url https://github.com/mano8/kalliope_neuron_ambient_soun
 | parameter         | required | type   | default          | choices             | comment                                                                     |
 |-------------------|----------|--------|------------------|---------------------|-----------------------------------------------------------------------------|
 | state             | YES      | string |                  | "on", "off", "play", "pause", "restart-song", "next-song", "back-song"         | Target state of the ambient sound. |
-| type              | NO       | string | ambient          | "ambient", "music", "sounds"   | If not set, ambient directory selected 
+| type              | NO       | string | ambient          | "ambient", "music", "sound"   | If not set, ambient directory selected 
 | sound_name        | NO       | string |                  | See the list bellow | If not set, a sound will be selectedrandomly                                |
 | mplayer_path      | NO       | string | /usr/bin/mplayer |                     | Path to mplayer binary. By default /usr/bin/mplayer on Debian family system |
 | auto_stop_minutes | NO       | int    |                  | Integer > 1         | Number of minutes before Kalliope stop automatically the background sound   |
@@ -107,7 +107,7 @@ Pause played song, music or sound
         state: "pause"
 ```
 
-Play played song, music or sound
+Play paused song, music or sound
 ```yml
 - name: "ambient-play"
   signals:
@@ -193,7 +193,7 @@ And then play, when you finish calling your ambient-play synapse.
           message:
             - "yes?"
 ```            
-## Notes
+## Sounds Folder structure
 The folder 'player_content/' contains 3 folders:
   - ambient/ : contain all ambients sounds
   - music/   : you can add here all your music
@@ -202,21 +202,25 @@ The folder 'player_content/' contains 3 folders:
 You can create a link to your home directory to add music more easly.
 But don't erase or rename this folders.
 
-These folders can only contains music files, no folders.
+These folders can only contains files, no directories.
 
 You can add winamp playlists to any folder, and play them.
 
 For now only '.mp3', '.ogg', '.wav', '.wma', '.amr', '.m3u' extensions can be played and can be stored on SoundDatabase.
 
-You can add your owns moddifing 'valid_ext' list on ambiant_sound.py
-
 In case of playlist, no control for extension, is executed.
 
+
 ## Fifo
+
 Fifo file is used here, to control mplayer.
+
 By default it created in this neuron path depending where you have installed. -> neuron_path/fifo_file_path
+
 If you have anothers fifo files, to control mplayer, you can change default directory, 
+
 by changing, fifo_file_path variable with your absolute path.
+
 Only if you want, all fifo's on same directory.
 
 This Fifo's don't be used by another mplayer process.
