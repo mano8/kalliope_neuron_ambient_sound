@@ -100,7 +100,7 @@ class SoundDatabase:
         dr = "ambient/"
         if soundtype == "music":
             dr = "music/"
-        elif soundtype == "sounds":
+        elif soundtype == "sound":
             dr = "sounds/"
 
         absolute_sound_file_path = cls.get_neuron_path() + os.sep + sound_path + dr
