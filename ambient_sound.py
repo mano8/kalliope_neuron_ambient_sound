@@ -40,17 +40,18 @@ class SoundDatabase:
         :return: list of AmbientSound object
         """
         list_ambient_sounds = list()
+        if SoundDatabase._is_valid_folder_type(soundtype):
 
-        list_sound_name_with_extension = \
-            [os.path.basename(x) for x in glob.glob(SoundDatabase.get_sound_folder_path(soundtype) + '/*')]
-        logger.debug("[Ambient_sounds] file in sound folder: %s" % list_sound_name_with_extension)
+            list_sound_name_with_extension = \
+                [os.path.basename(x) for x in glob.glob(SoundDatabase.get_sound_folder_path(soundtype) + '/*')]
+            logger.debug("[Ambient_sounds] file in sound folder: %s" % list_sound_name_with_extension)
 
-        for sound_with_extension in list_sound_name_with_extension:
-            tuple_name_extension = os.path.splitext(sound_with_extension)
-            # print tuple_name_extension
-            if tuple_name_extension[1] in valid_ext:
-                new_ambient_sound = AmbientSound(name=tuple_name_extension[0], file_extension=tuple_name_extension[1])
-                list_ambient_sounds.append(new_ambient_sound)
+            for sound_with_extension in list_sound_name_with_extension:
+                tuple_name_extension = os.path.splitext(sound_with_extension)
+                # print tuple_name_extension
+                if tuple_name_extension[1] in valid_ext:
+                    new_ambient_sound = AmbientSound(name=tuple_name_extension[0], file_extension=tuple_name_extension[1])
+                    list_ambient_sounds.append(new_ambient_sound)
 
         return list_ambient_sounds
 
@@ -72,6 +73,14 @@ class SoundDatabase:
         :return: AmbientSound object
         """
         return random.choice(self.available_sounds)
+
+    @staticmethod
+    def _is_valid_folder_type(state):
+        return (state in ["ambient", "music", "sound"])
+    
+    @staticmethod
+    def _is_valid_extension(state):
+        return (state in valid_ext)
 
     @classmethod
     def get_neuron_path(cls):
@@ -118,7 +127,6 @@ class Ambient_sound(NeuronModule):
         self.auto_stop_minutes = kwargs.get('auto_stop_minutes', None)
         
         self.is_playlist = False
-        self.extra_cmd = ["play","pause", "restart-song", "next-song", "back-song"]
         # this is the target AmbientSound object if the user gave a sound_name to play.
         # this object will be loaded by the _is_parameters_ok function durring the check if the sound exist
         self.target_ambient_sound = None
@@ -138,7 +146,7 @@ class Ambient_sound(NeuronModule):
             if self.state == "off":
                 self.stop_last_process()
                 self.clean_pid_file()
-            elif self.state in self.extra_cmd:
+            elif self._is_extra_state(self.state):
                 # To Do : 
                 #   - block next_song, back_song if no playlist or if no random
                 #     or if simple song select other creating other process
@@ -184,7 +192,7 @@ class Ambient_sound(NeuronModule):
         :return: True if all given parameter are ok
         """
 
-        if self.state not in ["on", "off"] and self.state not in self.extra_cmd: 
+        if not self._is_normal_state(self.state) and not self._is_extra_state(self.state): 
             raise InvalidParameterException("[Ambient_sounds] State must be 'on', 'off', 'play', 'pause', 'restart-song', 'next-song', 'back-song'")
 
         # check that the given sound name exist
@@ -205,6 +213,17 @@ class Ambient_sound(NeuronModule):
             if self.auto_stop_minutes < 1:
                 raise InvalidParameterException("[Ambient_sounds] auto_stop_minutes must be set at least to 1 minute")
         return True
+
+    @staticmethod
+    def _is_normal_state(state):
+        """ Test if state is on or off """
+        return (state in ["on","off"])
+
+    @staticmethod
+    
+    def _is_extra_state(state):
+        """ Test if state is an extra state (pause, play,...) """
+        return (state in ["mute","unmute", "play","pause", "restart-song", "next-song", "back-song"])
 
     @staticmethod
     def _get_fifo_file_path():
@@ -350,7 +369,7 @@ class Ambient_sound(NeuronModule):
         :return:
         """
         absolute_fifo_file_path = self._get_fifo_file_path()
-        if target_ambient_sound.file_extension in valid_ext:
+        if SoundDatabase._is_valid_extension(target_ambient_sound.file_extension):
             mplayer_exec_path = [self.mplayer_path]
             mplayer_options = ['-slave', '-quiet', '-loop', '0']
             if absolute_fifo_file_path is not None:
@@ -382,7 +401,7 @@ class Ambient_sound(NeuronModule):
 
             logger.debug("[Ambient_sounds] Mplayer started, pid: %s" % pid)
         else:
-            logger.error("[Ambient_sounds] Extension error : when attemping to play %s. Extension accepted are %s", str(target_ambient_sound.name + target_ambient_sound.file_extension), str(valid_ext))
+            logger.error("[Ambient_sounds] SoundDatabase corupted : when attemping to play %s. Extension type is not valid.", str(target_ambient_sound.name + target_ambient_sound.file_extension))
 
     @staticmethod
     def clean_pid_file():
