@@ -57,7 +57,9 @@ This neuron save on kalliope memory 'state', 'type', and 'sound_name' options wi
   - 'kalliope_ambient_sound_type'   -> can be 'ambient', 'music' or 'sound'
   - 'kalliope_ambient_sound_name'  -> the current sound played name
 
-Who add capatibility to retrive returned values when state is already 'on', and you send new valid state (pause, play... ), with other synapse.
+Who add capatibility to retrive returned values when state is already 'on', 
+and sending new valid state (pause, play... ), with other synapse.
+
 You can use them, but do not overwrite any of those data (can stop actual sound played, or disable capatibility to retrive returned values).
 
 
