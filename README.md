@@ -121,7 +121,7 @@ Pause played song, music or sound
         state: "pause"
 ```
 
-Play played song, music or sound
+Play paused song, music or sound
 ```yml
 - name: "ambient-play"
   signals:
@@ -226,9 +226,12 @@ In case of playlist, no control for extension, is executed.
 
 ## Fifo
 Fifo file is used here, to control mplayer.
+
 By default it created in this neuron path depending where you have installed. -> neuron_path/fifo_file_path
+
 If you have anothers fifo files, to control mplayer, you can change default directory, 
 by changing, fifo_file_path variable with your absolute path.
+
 Only if you want, all fifo's on same directory.
 
 This Fifo's don't be used by another mplayer process.
