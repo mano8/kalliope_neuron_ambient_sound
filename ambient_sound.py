@@ -250,7 +250,7 @@ class Ambient_sound(NeuronModule):
             if cmd == "pause":
                 cmd_run = "pausing_keep_force pause 1\n"
             elif cmd == "play":
-                cmd_run = "pause\n"
+                cmd_run = "pausing_toggle pause\n"
             elif cmd == "next-song":
                 cmd_run = "pt_step 1\n"
             elif cmd == "back-song":
